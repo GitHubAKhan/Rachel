@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Valentine's Proposal (Bigger Flowers)</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lobster&family=Open+Sans:wght@400;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #ffd5e0; /* Light pink background */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Open Sans', sans-serif;
+      color: #fff;
+      text-align: center;
+      position: relative;
+      overflow: hidden; /* Helps if "No" button moves off-screen */
+    }
+
+    /* Main Heading */
+    h1 {
+      font-family: 'Lobster', cursive;
+      font-size: 3rem;
+      margin-bottom: 2rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      z-index: 2; /* Above flowers */
+      position: relative;
+    }
+
+    /* Buttons Wrapper */
+    #buttons {
+      display: flex;
+      gap: 2rem;
+      z-index: 2; /* Above flowers */
+      position: relative;
+    }
+
+    /* Button Base */
+    .btn {
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+      font-family: 'Open Sans', sans-serif;
+      background-color: #ff4980;
+      color: #fff;
+    }
+    .btn:hover {
+      background-color: #ff295f;
+      transform: scale(1.05);
+    }
+
+    /* "No" button can move around on hover in JS */
+    .btn-no {
+      position: relative;
+    }
+
+    /* Love message hidden initially */
+    #loveMessage {
+      margin-top: 2rem;
+      font-size: 2rem;
+      font-family: 'Lobster', cursive;
+      display: none; /* hidden by default */
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      z-index: 2; /* Above flowers */
+      position: relative;
+    }
+
+    /* ===== Flower Container & Animation ===== */
+    .flower-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none; /* so clicks pass through to buttons */
+      z-index: 1; /* behind text/buttons */
+    }
+
+    /* 
+      Each flower is now 5x bigger: 
+      80px → 400px, 120px → 600px.
+    */
+    .flower {
+      position: absolute;
+      width: 400px; 
+      height: 600px;
+    }
+    .flower svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Gentle sway animation */
+    @keyframes swayFlower {
+      0%   { transform: rotate(0deg); }
+      50%  { transform: rotate(3deg); }
+      100% { transform: rotate(0deg); }
+    }
+    .sway {
+      animation: swayFlower 4s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Flowers behind everything -->
+  <div class="flower-container" id="flowerContainer"></div>
+
+  <h1>Will you be my Valentine?</h1>
+
+  <div id="buttons">
+    <button class="btn btn-yes" id="yesBtn">Yes</button>
+    <button class="btn btn-no" id="noBtn">No</button>
+  </div>
+
+  <div id="loveMessage">LFG Roo, I love you!</div>
+
+  <script>
+    /********************
+     * 1) CREATE FLOWERS *
+     ********************/
+    const flowerContainer = document.getElementById('flowerContainer');
+
+    // Number of flowers to scatter
+    const NUM_FLOWERS = 5;
+
+    for (let i = 0; i < NUM_FLOWERS; i++) {
+      const fDiv = document.createElement('div');
+      fDiv.classList.add('flower', 'sway');
+
+      // Because each flower is 400x600, position them accordingly
+      const maxX = window.innerWidth  - 400;  // subtract flower width
+      const maxY = window.innerHeight - 600; // subtract flower height
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+
+      fDiv.style.left = x + 'px';
+      fDiv.style.top = y + 'px';
+
+      // Inline SVG: stem, leaves, flower bulb
+      fDiv.innerHTML = `
+        <svg viewBox="0 0 100 150">
+          <!-- STEM (green rectangle down the middle) -->
+          <rect x="47" y="50" width="6" height="80" fill="green" />
+
+          <!-- LEAVES -->
+          <path
+            d="M 47,90 C 30,80 40,70 47,75 47,80 47,85 47,90 Z"
+            fill="green"
+          />
+          <path
+            d="M 53,90 C 70,80 60,70 53,75 53,80 53,85 53,90 Z"
+            fill="green"
+          />
+
+          <!-- FLOWER BULB (center + petals) -->
+          <!-- Center circle -->
+          <circle cx="50" cy="30" r="10" fill="yellow" />
+
+          <!-- Petals around the center -->
+          <circle cx="50" cy="12" r="10" fill="pink" opacity="0.8" />
+          <circle cx="50" cy="48" r="10" fill="pink" opacity="0.8" />
+          <circle cx="32" cy="30" r="10" fill="pink" opacity="0.8" />
+          <circle cx="68" cy="30" r="10" fill="pink" opacity="0.8" />
+        </svg>
+      `;
+
+      flowerContainer.appendChild(fDiv);
+    }
+
+    /****************************
+     * 2) VALENTINE BUTTON LOGIC *
+     ****************************/
+    const noBtn = document.getElementById('noBtn');
+    const yesBtn = document.getElementById('yesBtn');
+    const loveMessage = document.getElementById('loveMessage');
+
+    // The "No" button runs away on mouseover
+    noBtn.addEventListener('mouseover', () => {
+      const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
+      const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
+
+      noBtn.style.position = 'absolute';
+      noBtn.style.left = x + 'px';
+      noBtn.style.top = y + 'px';
+    });
+
+    // Clicking "Yes" reveals the love message
+    yesBtn.addEventListener('click', () => {
+      loveMessage.style.display = 'block';
+    });
+  </script>
+</body>
+</html>
